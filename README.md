@@ -1,5 +1,5 @@
-# PanGP_Extractor
-Tool to extract username and password of current user from PanGPA in plaintext
+# PanGPA_Extractor
+Tool to extract username and password of current user from PanGPA in plaintext under Windows
 
 Palo Alto Networks GlobalProtect client queries the GlobalProtect Service for your username and password everytime you log on or refresh the connection.
 
