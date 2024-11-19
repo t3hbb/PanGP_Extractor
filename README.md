@@ -5,7 +5,7 @@ Palo Alto Networks GlobalProtect client queries the GlobalProtect Service for yo
 
 It appears in memory as paintext - same with the uninstall password and deactivate passcode.
 
-This is a PoC to demonstrate the extraction of the username and password. A full write up can be found over at [shells.systems] (https://shells.systems/extracting-plaintext-credentials-from-palo-alto-global-protect/)
+This is a PoC to demonstrate the extraction of the username and password. A full write up can be found over at [shells.systems](https://shells.systems/extracting-plaintext-credentials-from-palo-alto-global-protect/)
 
 ![image](https://github.com/user-attachments/assets/d277446a-8678-45c0-b778-5d3364941ba0)
 
