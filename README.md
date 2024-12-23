@@ -1,7 +1,11 @@
 # PanGPA_Extractor
 Tool to extract username and password of current user from PanGPA in plaintext under Windows
 
-**EDIT 23/12/2024 : Appears fixed in 6.2.6-838, although I couldn't find the issue explicitly marked as solved at https://docs.paloaltonetworks.com/globalprotect/6-2/globalprotect-app-release-notes/globalprotect-addressed-issues**
+**EDIT 23/12/2024**
+
+**Bad News : PoC no longer works against 6.2.6-838, although I couldn't find the issue explicitly marked as solved at https://docs.paloaltonetworks.com/globalprotect/6-2/globalprotect-app-release-notes/globalprotect-addressed-issues**
+
+**Good News : Few simple changes and you can still retrieve this information ... block the tool not the technique - good going guys**
 
 Palo Alto Networks GlobalProtect client queries the GlobalProtect Service for your username and password everytime you log on or refresh the connection.
 
