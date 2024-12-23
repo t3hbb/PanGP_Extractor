@@ -7,6 +7,8 @@ Tool to extract username and password of current user from PanGPA in plaintext u
 
 **Good News : Few simple changes and you can still retrieve this information ... block the tool not the technique - good going guys**
 
+**Check out the other branch for a version that will work with v6.2.6-838**
+
 Palo Alto Networks GlobalProtect client queries the GlobalProtect Service for your username and password everytime you log on or refresh the connection.
 
 It appears in memory as paintext - same with the uninstall password and deactivate passcode.
